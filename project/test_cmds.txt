@@ -1,0 +1,7 @@
+35 test_files/test_01_a35_p5_w3 test_files/test_01_a35_p7_w2 test_files/test_01_a35_p8_w1 test_files/test_01_a35_p8_w4
+35 test_files/test_01_a35_p5_w3 test_files/test_01_a35_p7_w2 test_files/test_01_a35_p8_w1 
+35 test_files/test_01_a35_p8_w1 test_files/test_01_a35_p8_w4 test_files/test_01_a35_p5_w3
+30000 test_files/test_02_a30k_p20k_w2 test_files/test_02_a30k_p20k_w5 test_files/test_02_a30k_p20k_w1
+30000 test_files/test_02_a30k_p20k_w3 test_files/test_02_a30k_p20k_w6 test_files/test_02_a30k_p20k_w4
+30000 test_files/test_02_a30k_p20k_w5 test_files/test_02_a30k_p20k_w6 
+30000 test_files/test_02_a30k_p20k_w1 test_files/test_02_a30k_p20k_w2

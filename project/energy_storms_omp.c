@@ -50,26 +50,29 @@ typedef struct {
 
 /* THIS FUNCTION CAN BE MODIFIED */
 /* Function to update a single position of the layer */
-void update( float *layer, int layer_size, int k, int pos, float energy ) {
-    /* 1. Compute the absolute value of the distance between the
-        impact position and the k-th position of the layer */
-    int distance = pos - k;
-    if ( distance < 0 ) distance = - distance;
+void update( float *layer, int layer_size, int pos, float energy ) {
+    #pragma omp parallel for
+    for (int k = 0; k < layer_size; ++k) {
+        /* 1. Compute the absolute value of the distance between the
+            impact position and the k-th position of the layer */
+        int distance = pos - k;
+        if ( distance < 0 ) distance = - distance;
 
-    /* 2. Impact cell has a distance value of 1 */
-    distance = distance + 1;
+        /* 2. Impact cell has a distance value of 1 */
+        distance = distance + 1;
 
-    /* 3. Square root of the distance */
-    /* NOTE: Real world atenuation typically depends on the square of the distance.
-       We use here a tailored equation that affects a much wider range of cells */
-    float atenuacion = sqrtf( (float)distance );
+        /* 3. Square root of the distance */
+        /* NOTE: Real world atenuation typically depends on the square of the distance.
+           We use here a tailored equation that affects a much wider range of cells */
+        float atenuacion = sqrtf( (float)distance );
 
-    /* 4. Compute attenuated energy */
-    float energy_k = energy / layer_size / atenuacion;
+        /* 4. Compute attenuated energy */
+        float energy_k = energy / layer_size / atenuacion;
 
-    /* 5. Do not add if its absolute value is lower than the threshold */
-    if ( energy_k >= THRESHOLD / layer_size || energy_k <= -THRESHOLD / layer_size )
-        layer[k] = layer[k] + energy_k;
+        /* 5. Do not add if its absolute value is lower than the threshold */
+        if ( energy_k >= THRESHOLD / layer_size || energy_k <= -THRESHOLD / layer_size )
+            layer[k] = layer[k] + energy_k;
+    }
 }
 
 
@@ -200,10 +203,10 @@ int main(int argc, char *argv[]) {
             int position = storms[i].posval[j*2];
 
             /* For each cell in the layer */
-            for( k=0; k<layer_size; k++ ) {
+            // for( k=0; k<layer_size; k++ ) {
                 /* Update the energy value for the cell */
-                update( layer, layer_size, k, position, energy );
-            }
+            update( layer, layer_size, position, energy );
+            // }
         }
 
         /* 4.2. Energy relaxation between storms */
