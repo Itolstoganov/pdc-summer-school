@@ -66,11 +66,15 @@ typedef struct {
     int *posval; // Positions and values
 } Storm;
 
+
+
 /* THIS FUNCTION CAN BE MODIFIED */
 /* Function to update a single position of the layer */
-void update( float *layer, int layer_size, int k, int pos, float energy ) {
+__global__
+void update(float *layer, int layer_size, int pos, float energy ) {
     /* 1. Compute the absolute value of the distance between the
         impact position and the k-th position of the layer */
+    int k = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int distance = pos - k;
     if ( distance < 0 ) distance = - distance;
 
@@ -219,11 +223,14 @@ int main(int argc, char *argv[]) {
             /* Get impact position */
             int position = storms[i].posval[j*2];
 
+            const unsigned block_size = 256;
+            hipLaunchKernelGGL(update, dim3(layer_size / block_size), dim3(block_size), 0, 0, layer, layer_size, position, energy);
+
             /* For each cell in the layer */
-            for( k=0; k<layer_size; k++ ) {
-                /* Update the energy value for the cell */
-                update( layer, layer_size, k, position, energy );
-            }
+            // for( k=0; k<layer_size; k++ ) {
+            //     /* Update the energy value for the cell */
+            //     update( layer, layer_size, k, position, energy );
+            // }
         }
 
         /* 4.2. Energy relaxation between storms */

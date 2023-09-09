@@ -34,7 +34,7 @@ LIBS=-lm
 
 # Targets to build
 # change energy_storms_cuda to energy_storms_hip in order to build for hip instead
-OBJS=energy_storms_seq energy_storms_omp energy_storms_mpi 
+OBJS=energy_storms_seq energy_storms_omp energy_storms_mpi energy_storms_hip 
 
 # Rules. By default show help
 help:
