@@ -68,9 +68,14 @@ typedef struct {
 
 /* THIS FUNCTION CAN BE MODIFIED */
 /* Function to update a single position of the layer */
-void update( float *layer, int layer_size, int k, int pos, float energy ) {
+__global__ void update( float *layer, int layer_size, int pos, float energy ) {
     /* 1. Compute the absolute value of the distance between the
         impact position and the k-th position of the layer */
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k >= layer_size) {
+        return;
+    }
+    // fprintf(stdout, "%d, %d, %d, %d", blockDim.x, blockIdx.x, threadIdx, k);
     int distance = pos - k;
     if ( distance < 0 ) distance = - distance;
 
@@ -170,18 +175,18 @@ int main(int argc, char *argv[]) {
     int i,j,k;
 
     /* 1.1. Read arguments */
-    if (argc<3) {
-        fprintf(stderr,"Usage: %s <size> <storm_1_file> [ <storm_i_file> ] ... \n", argv[0] );
+    if (argc<4) {
+        fprintf(stderr,"Usage: %s <threads> <size> <storm_1_file> [ <storm_i_file> ] ... \n", argv[0] );
         exit( EXIT_FAILURE );
     }
 
-    int layer_size = atoi( argv[1] );
-    int num_storms = argc-2;
+    int layer_size = atoi( argv[2] );
+    int num_storms = argc-3;
     Storm storms[ num_storms ];
 
     /* 1.2. Read storms information */
-    for( i=2; i<argc; i++ ) 
-        storms[i-2] = read_storm_file( argv[i] );
+    for( i=3; i<argc; i++ ) 
+        storms[i-3] = read_storm_file( argv[i] );
 
     /* 1.3. Intialize maximum levels to zero */
     float maximum[ num_storms ];
@@ -206,10 +211,18 @@ int main(int argc, char *argv[]) {
         exit( EXIT_FAILURE );
     }
     for( k=0; k<layer_size; k++ ) layer[k] = 0.0f;
-    for( k=0; k<layer_size; k++ ) layer_copy[k] = 0.0f;
     
+    float* device_layer;
+    cudaMalloc((void **)&device_layer, layer_size * sizeof(float));
+
     /* 4. Storms simulation */
     for( i=0; i<num_storms; i++) {
+        for( k=0; k<layer_size; k++ ) layer_copy[k] = 0.0f;
+        cudaMemcpy(device_layer, layer_copy, layer_size * sizeof(float), cudaMemcpyHostToDevice);
+    
+        // for (k = 0; k< layer_size; ++k) {
+        //     device_layer[k] = 0;
+        // }
 
         /* 4.1. Add impacts energies to layer cells */
         /* For each particle */
@@ -219,11 +232,14 @@ int main(int argc, char *argv[]) {
             /* Get impact position */
             int position = storms[i].posval[j*2];
 
-            /* For each cell in the layer */
-            for( k=0; k<layer_size; k++ ) {
-                /* Update the energy value for the cell */
-                update( layer, layer_size, k, position, energy );
-            }
+            dim3 blockDim(atoi(argv[1]));
+            dim3 gridDim(ceil(((float)layer_size) / ((float)blockDim.x)));
+
+            update<<<gridDim, blockDim>>>(device_layer, layer_size, position, energy );
+        }
+        cudaMemcpy(layer_copy, device_layer, layer_size * sizeof(float), cudaMemcpyDeviceToHost);
+        for (k = 0; k < layer_size; ++k) {
+            layer[k] += layer_copy[k];
         }
 
         /* 4.2. Energy relaxation between storms */
@@ -270,7 +286,7 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     /* 8. Free resources */    
-    for( i=0; i<argc-2; i++ )
+    for( i=0; i<argc-3; i++ )
         free( storms[i].posval );
 
     /* 9. Program ended successfully */

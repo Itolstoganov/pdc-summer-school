@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
     int num_chunks = size - 1;
     int pos_offset = 0;
     int chunk_size = layer_size / num_chunks;
-    int max_chunk_size = 2 * chunk_size;
+    int max_chunk_size = num_chunks > 2 * chunk_size ? num_chunks : 2 * chunk_size;
 
     float *layer = NULL;
     float *layer_copy = NULL;
@@ -234,10 +234,8 @@ int main(int argc, char *argv[]) {
                 int current_chunk_size = rec_rank < num_chunks ? chunk_size : layer_size - pos_offset;
                 MPI_Status status;
                 MPI_Recv(layer_copy + pos_offset, current_chunk_size, MPI_FLOAT, rec_rank, (2 + i) * num_chunks + rec_rank, MPI_COMM_WORLD, &status);
-                // MPI_Get_count(&status, MPI_INT, &recieved);
                 // fprintf(stdout, "Storm %d, received %d\n", i, recieved);
                 for (int k = pos_offset; k < pos_offset + current_chunk_size; ++k) {
-                    // fprintf(stdout, "%f, ", layer_copy[k]);
                     layer[k] += layer_copy[k];
                 }
                 // fprintf(stdout, "\n");

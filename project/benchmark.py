@@ -7,7 +7,7 @@ from collections import namedtuple
 
 RunResults = namedtuple('RunResults', ['time', 'results'])
 
-versions = {"seq": "Sequential", "omp": "OpenMP", "mpi": "MPI"}
+versions = {"seq": "Sequential", "omp": "OpenMP", "mpi": "MPI", "cuda": "CUDA"}
 
 def createparser():
     parser = argparse.ArgumentParser()
