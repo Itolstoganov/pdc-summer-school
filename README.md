@@ -18,6 +18,23 @@ To pull any changes (get new updates, changes and exercises that are added):
 To also load the content of the linked repositories (such as the GPU exercises), use the following git command:
 `git submodule update --init --recursive`
 
-# Quiz 1
-Link to quiz for the first week, 10/12 points are needed for a passing grade. You can repeat the quiz many times so try to get 12/12!
-https://forms.gle/tzmrpogNRjM6W9MK8
+# Running the project
+
+To run the OpenMP version, use
+export OMP_NUM_THREADS=<num_threads>
+`./energy_storms_omp <size> <storm_1_file> [ <storm_i_file>] ...`
+
+To run the MPI version, use
+`mpirun -n <num_threads> ./energy_storms_mpi <size> <storm_1_file> [ <storm_i_file>] ...`
+
+To run the CUDA version, use
+`./energy_storms_cuda <num_threads> <size> <storm_1_file> [ <storm_i_file>] ...`
+
+# Benchmarks
+
+To benchmark the versions on the provided test cases, use
+`./run_tests.sh <num_threads> <file_with_test_cases>`
+(Python 3 required)
+
+e.g
+`./run_tests.sh 8 all_tests.txt`
